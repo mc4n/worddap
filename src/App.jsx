@@ -2,7 +2,7 @@ import React from "react";
 import "./App.css";
 import { Button, Card, Form } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
+import {calcBalance, calcScore} from "./helper.js"
 
 
 function Todo({ todo, index }) {
@@ -27,8 +27,8 @@ function FormTodo({ addTodo }) {
   return (
     <Form onSubmit={handleSubmit}> 
     <Form.Group>
-      <Form.Label><b>Add Word</b></Form.Label>
-      <Form.Control type="text" className="input" value={value} onChange={e => setValue(e.target.value)} placeholder="Add new word" />
+      <Form.Label><b>Type a Word</b></Form.Label>
+      <Form.Control type="text" className="input" value={value} onChange={e => setValue(e.target.value)} placeholder="a valid Turkish word" />
     </Form.Group>
     <Button variant="primary mb-3" type="submit">
       Submit
@@ -37,79 +37,35 @@ function FormTodo({ addTodo }) {
   );
 }
 
-
-
-function calcBalance(prev, curr){
-  if (prev.length == 0) return 1
-  else if(prev.length != 0 && Math.abs(prev.length-curr.length) > 1) return 0
-  else {
-
-    if(prev.length == curr.length){
-      let diff = 0
-      for(let i = 0; i < prev.length; i++){
-        if(prev[i]!=curr[i]) diff++
-        if(diff>1)return 0
-      }
-
-    return 1
-    }
-    else{
-      const shortW = prev.length> curr.length? curr:prev
-      const longW = prev.length< curr.length?curr:prev
-      for(let i = 0; i < longW.length; i++){
-          let trimmedLong = []
-          for(let j = 0; j < longW.length; j++) 
-            if(i != j) trimmedLong.push(longW[j])
-          if(trimmedLong.join("") == shortW) return -1
-      }
-      return 0
-    }
-
-  }
-}
-
-
-function calcScore(todos){
-  let score = 0
-    for (let i=todos.length-1; i > 0; i--){
-      const cb = calcBalance(todos[i-1], todos[i])
-      console.log(cb)
-      score += cb
-    }
-  return score
-}
-
-
 function App() {
   
   const [todos, setTodos] = React.useState([])
-
-  const [lastWord, setLastWord] = React.useState([])
-
-
-  React.useEffect(()=>{
-    setTodos([lastWord,...todos])
-  },[lastWord]);
-
-
   
+  const firstUpdate = React.useRef(true);
 
+  const lastWord = todos[0] !== undefined ? todos[0] : ""
 
   const addTodo = _word => {
     if(!_word.includes(' ') && !todos.includes(_word.toLowerCase())){
       const cbal = calcBalance(lastWord, _word)
-      //console.log(cbal)
       if(cbal == 1 || cbal == -1){
-        setLastWord(_word.toLowerCase())
+        setTodos([_word.toLowerCase(),...todos])
       }
     }
   };
 
+  const resetGame = () => setTodos([])
+
+  let totalSc = calcScore(todos)
+
+  if(totalSc == -1) resetGame()
+
   return (
     <div className="app">
       <div className="container">
+        <button onClick={resetGame}> Reset</button>
         <h1 className="text-center mb-4">Worddapp</h1>
-        <a> Score: {calcScore(todos)}</a><br/>
+        <a> Score: {totalSc}</a><br/>
         <br/>
         <FormTodo addTodo={addTodo} />
 
