@@ -63,17 +63,20 @@ function App() {
 
   let totalSc = calcScore(todos)
 
-  if (totalSc === -1) resetGame()
+  //if (totalSc === -1) resetGame()
 
   return (
     <div className="app">
       <div className="container">
         <button onClick={resetGame}> Reset</button>
         <h1 className="text-center mb-4">Worddapp</h1>
-        <p> Score: {totalSc}</p>
-        <br />
-        <br />
-        <FormTodo addTodo={addTodo} />
+        
+        {(totalSc > -1)?<p> Score: {totalSc}</p>:<h2>Game over!</h2>}
+
+        <br/>
+        <br/>
+
+        {(totalSc > -1)?<FormTodo addTodo={addTodo} />:<div/>}
 
         {lastWord !== '' ? (
           <p>
