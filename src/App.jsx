@@ -77,10 +77,18 @@ function App() {
 
   let totalSc = calcScore(todos)
 
-   React.useEffect(()=>{
-     if (myRef!==null && myRef.current!==null)myRef.current.focus()   
+  React.useEffect(()=>{
+     if (myRef!==null && myRef.current!==null)myRef.current.focus()
    })
 
+
+  const isStart = React.useRef(true)
+
+  React.useEffect(() => {
+        if(!isStart.current) localStorage.setItem("todos", JSON.stringify(todos))
+        else setTodos(JSON.parse(localStorage.getItem("todos")))
+        isStart.current = false
+   },[todos])
  
 
   return (
