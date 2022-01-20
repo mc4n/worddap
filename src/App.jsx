@@ -10,12 +10,12 @@ function Todo({ todo, index, onSwitch}) {
       <span>
         {todo} ({todo.length})
       </span>
-      {(index === 0)? <div></div> :<button class="btn btn-secondary" onClick={()=>onSwitch(index)}>-></button>}
+      {(index === 0)? <div></div> :<button className="btn btn-secondary" onClick={()=>onSwitch(index)}>-></button>}
     </div>
   )
 }
 
-function FormTodo({ addTodo }) {
+function FormTodo({txtRef, addTodo, disabled }) {
   const [value, setValue] = React.useState('')
 
   const handleSubmit = (e) => {
@@ -32,6 +32,8 @@ function FormTodo({ addTodo }) {
           <b>Type a Word:</b>
         </Form.Label>
         <Form.Control
+          ref = {txtRef}
+          disabled = {disabled}
           type="text"
           className="input"
           value={value}
@@ -39,7 +41,7 @@ function FormTodo({ addTodo }) {
           placeholder="Turkish please."
         />
       </Form.Group>
-      <button class="btn btn-success" type="submit">
+      <button className="btn btn-success" type="submit">
         Submit
       </button>
     </Form>
@@ -51,8 +53,13 @@ function App() {
 
   const lastWord = todos[0] !== undefined ? todos[0] : ''
 
+  const [isFetching, setisFetching] = React.useState(false)
+
+  const myRef = React.createRef();
+  
   const addTodo = (_word) => {
-    if (!_word.includes(' ') && !todos.includes(_word.toLowerCase())) {
+    if (!_word.includes(' ') && _word.length > 1 && !todos.includes(_word.toLowerCase())) {
+      setisFetching(true)
        fetch('https://sozluk.gov.tr/gts?ara='+ _word)
         .then(response => response.json())
         .catch(()=>alert("error validating the word! check your network connection."))
@@ -61,7 +68,8 @@ function App() {
               const cbal = calcBalance(lastWord, _word)
               if (cbal === 1 || cbal === -1) setTodos([_word.toLowerCase(), ...todos])
             }
-        })
+        }).then(()=>setisFetching(false))
+        
     }
   }
 
@@ -69,18 +77,23 @@ function App() {
 
   let totalSc = calcScore(todos)
 
+   React.useEffect(()=>{
+     if (myRef!==null && myRef.current!==null)myRef.current.focus()   
+   })
+
+ 
+
   return (
     <div className="app">
+      <h6 className="text-muted mb-4" align="center"> (Alter one letter, the balance increases by 1;
+       add/remove, drops by 1. Keep the balance positive, and grow your list!)</h6>
       <div className="container">
-      <button onClick={resetGame} type="button" class="btn btn-dark">Reset</button>
-        <h1 className="text-center mb-4">Worddapp</h1>
+      <button onClick={resetGame} type="button" className="btn btn-dark">Reset</button>
+        <h1 className="text-center mb-2">Worddap</h1>
         
-        {(totalSc > -1)?<p> Score: {totalSc}</p>:<h2>Game over!</h2>}
+        {(totalSc > -1)?<p> Balance: {totalSc}</p>:<h2>Game over!</h2>}        
 
-        <br/>
-        <br/>
-
-        {(totalSc > -1)?<FormTodo addTodo={addTodo} />:<div/>}
+        {(totalSc > -1)?<FormTodo txtRef = {myRef} addTodo={addTodo} disabled={isFetching} />:<div/>}
         <br/>
         
         {lastWord !== '' ? (
