@@ -82,13 +82,13 @@ function App() {
    })
 
 
-  const isStart = React.useRef(true)
+  /*const isStart = React.useRef(true)
 
   React.useEffect(() => {
         if(!isStart.current) localStorage.setItem("todos", JSON.stringify(todos))
         else setTodos(JSON.parse(localStorage.getItem("todos")))
         isStart.current = false
-   },[todos])
+   },[todos])*/
  
 
   return (
