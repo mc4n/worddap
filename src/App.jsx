@@ -5,9 +5,25 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import { calcBalance, calcScore } from './helper.js'
 
 function Todo({ todo, index, onSwitch}) {
+
+  const [color, setColor] = React.useState("black")
+
+  const [isFetching, setisFetching] = React.useState(false)
+
+  React.useEffect(() => {
+    setisFetching(true)
+       fetch('https://sozluk.gov.tr/gts?ara='+ todo)
+        .then(response => response.json())
+        .catch(()=>alert("error validating the word! check your network connection."))
+        .then(data =>{
+            setColor(data.error!=="Sonuç bulunamadı"?"green":"red")
+        })
+    
+  },[todo])
+
   return (
     <div className="todo">
-      <span>
+      <span style={{color:color}}>
         {todo} ({todo.length})
       </span>
       {(index === 0)? <div></div> :<button className="btn btn-secondary" onClick={()=>onSwitch(index)}>-></button>}
@@ -59,16 +75,16 @@ function App() {
   
   const addTodo = (_word) => {
     if (!_word.includes(' ') && _word.length > 1 && !todos.includes(_word.toLowerCase())) {
-      setisFetching(true)
+      /*setisFetching(true)
        fetch('https://sozluk.gov.tr/gts?ara='+ _word)
         .then(response => response.json())
         .catch(()=>alert("error validating the word! check your network connection."))
         .then(data =>{
-            if(data.error!=="Sonuç bulunamadı"){
-              const cbal = calcBalance(lastWord, _word)
-              if (cbal === 1 || cbal === -1) setTodos([_word.toLowerCase(), ...todos])
-            }
-        }).then(()=>setisFetching(false))
+            if(data.error!=="Sonuç bulunamadı"){*/
+            const cbal = calcBalance(lastWord, _word)
+            if (cbal === 1 || cbal === -1) setTodos([_word.toLowerCase(), ...todos])
+            //}
+        //}).then(()=>setisFetching(false))
         
     }
   }
