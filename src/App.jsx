@@ -60,17 +60,23 @@ function App() {
   
   const addTodo = (_word) => {
     if (!_word.includes(' ') && _word.length > 1 && todos.find(o => o[0] === _word.toLowerCase())===undefined) {
-      setisFetching(true)
-       fetch('https://sozluk.gov.tr/gts?ara='+ _word)
-        .then(response => response.json())
-        .catch(()=>alert("error validating the word! check your network connection."))
-        .then(data =>{
-            const cbal = validateW(lastWord, _word)
-            if(cbal !== 0){
-              setTodos([[_word.toLowerCase(), data.error !== "Sonuç bulunamadı"], ...todos])
-            }
-        }).then(()=>setisFetching(false))
-        
+      
+      const cbal = validateW(lastWord, _word)
+      if(cbal !== 0){
+         setisFetching(true)
+         fetch('https://sozluk.gov.tr/gts?ara='+ _word)
+          .then(response => response.json())
+          .catch(()=>{
+            alert("error validating the word! check your network connection.");
+            setisFetching(false);
+          })
+          .then(data =>{
+              
+                setTodos([[_word.toLowerCase(), data.error !== "Sonuç bulunamadı"], ...todos])
+              
+          })
+          .then(()=>setisFetching(false))
+      }
     }
   }
 
