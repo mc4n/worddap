@@ -1,15 +1,16 @@
 import React from 'react'
 import './App.css'
-import { Button, Card, Form } from 'react-bootstrap'
+import { Card, Form } from 'react-bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { calcBalance, calcScore } from './helper.js'
+import { validateW, calcBalance } from './helper.js'
 
 function Todo({ todo, index, onSwitch}) {
   return (
     <div className="todo">
-      <span>
-        {todo} ({todo.length})
-      </span>
+      <p style={{'backgroundColor':todo[1]?'#55FF74':'#F87758'}}>
+        {todo[0]} ({todo.length})
+      </p>
+
       {(index === 0)? <div></div> :<button className="btn btn-secondary" onClick={()=>onSwitch(index)}>-></button>}
     </div>
   )
@@ -51,22 +52,22 @@ function FormTodo({txtRef, addTodo, disabled }) {
 function App() {
   const [todos, setTodos] = React.useState([])
 
-  const lastWord = todos[0] !== undefined ? todos[0] : ''
+  const lastWord = todos[0] !== undefined ? todos[0][0] : ''
 
   const [isFetching, setisFetching] = React.useState(false)
 
   const myRef = React.createRef();
   
   const addTodo = (_word) => {
-    if (!_word.includes(' ') && _word.length > 1 && !todos.includes(_word.toLowerCase())) {
+    if (!_word.includes(' ') && _word.length > 1 && todos.find(o => o[0] === _word.toLowerCase())===undefined) {
       setisFetching(true)
        fetch('https://sozluk.gov.tr/gts?ara='+ _word)
         .then(response => response.json())
         .catch(()=>alert("error validating the word! check your network connection."))
         .then(data =>{
-            if(data.error!=="Sonuç bulunamadı"){
-              const cbal = calcBalance(lastWord, _word)
-              if (cbal === 1 || cbal === -1) setTodos([_word.toLowerCase(), ...todos])
+            const cbal = validateW(lastWord, _word)
+            if(cbal !== 0){
+              setTodos([[_word.toLowerCase(), data.error !== "Sonuç bulunamadı"], ...todos])
             }
         }).then(()=>setisFetching(false))
         
@@ -75,7 +76,10 @@ function App() {
 
   const resetGame = () => setTodos([])
 
-  let totalSc = calcScore(todos)
+
+  let totalBc = [0, 0]
+
+  if (!isFetching && todos.length > 0) totalBc = calcBalance(todos)
 
   React.useEffect(()=>{
      if (myRef!==null && myRef.current!==null)myRef.current.focus()
@@ -93,15 +97,19 @@ function App() {
 
   return (
     <div className="app">
-      <h6 className="text-muted mb-4" align="center"> (Alter one letter, the balance increases by 1;
-       add/remove, drops by 1. Keep the balance positive, and grow your list!)</h6>
+      <h6 className="text-muted mb-4" align="center"> (Altering one letter at a time, the balance increases by 1 if word is valid;
+       drops by 1 if invalid. Keep the balance positive, and grow your list!)</h6>
       <div className="container">
       <button onClick={resetGame} type="button" className="btn btn-dark">Reset</button>
-        <h1 className="text-center mb-2">Worddap</h1>
-        
-        {(totalSc > -1)?<p> Balance: {totalSc}</p>:<h2>Game over!</h2>}        
+        <h1 className="text-center mb-2" style={{color:"grey"}}>Worddap</h1>
 
-        {(totalSc > -1)?<FormTodo txtRef = {myRef} addTodo={addTodo} disabled={isFetching} />:<div/>}
+        {!isFetching?<h3 style={{color:"blue"}}> Score: {totalBc[1]}</h3>:<div></div>}
+        
+        {(totalBc[0] > -1)?(!isFetching?<p style={{color:totalBc[0]<=1?"red":"green"}}> Balance: {totalBc[0]}</p>:<div></div>):<h2>Game over!</h2>}
+
+        {(totalBc[0] > -1)?<FormTodo txtRef = {myRef} addTodo={addTodo} disabled={isFetching} />:<div/>}
+
+
         <br/>
         
         {lastWord !== '' ? (
@@ -113,12 +121,12 @@ function App() {
           <div />
         )}
         <br />
-        {lastWord !== '' ? <p>History (count: {todos.length}):</p> : <div />}
+        {lastWord !== '' ? <p>History (total: {todos.length}):</p> : <div />}
         <div>
           {todos.map((todo, index) => (
             <Card>
               <Card.Body>
-                <Todo key={index} index={index} todo={todo} onSwitch={(i)=>{ setTodos(todos.slice(i)) }} />
+                <Todo key={todo} index={index} todo={todo} onSwitch={(i)=>{ setTodos(todos.slice(i)) }} />
               </Card.Body>
             </Card>
           ))}

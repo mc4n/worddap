@@ -1,4 +1,4 @@
-export function calcBalance(prev, curr) {
+export function validateW(prev, curr) {
   if (prev.length === 0) return 1
   else if (prev.length !== 0 && Math.abs(prev.length - curr.length) > 1) return 0
   else {
@@ -24,11 +24,19 @@ export function calcBalance(prev, curr) {
   }
 }
 
-export function calcScore(todos) {
+export function calcBalance(todos) {
+  let balance = 0
   let score = 0
-  for (let i = todos.length - 1; i > 0; i--) {
-    const cb = calcBalance(todos[i - 1], todos[i])
-    score += cb
+  
+  if (todos.length===0) return [balance, score];
+
+  for(var item of todos){
+    const _add = item[1]?1:(-1);
+    balance += _add;
+    if(_add ===1)
+      score += item[0].length;
   }
-  return score
+
+  return [balance, score]
+
 }
